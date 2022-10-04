@@ -15,7 +15,8 @@
 #SBATCH --error="cirIns-%j.err"
 ## LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 
-reads="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig1/GFP_171107/211203/171107_LW1_aubago_eggs.fastq.chop.fastq-HMS-Beagle.fa.TE+GFP+.fa"
-ref="HMS-Beagle_circle.fa"
+#reads="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig1/GFP_171107/211203/171107_LW1_aubago_eggs.fastq.chop.fastq-HMS-Beagle.fa.TE+GFP+.fa"
+reads="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/NonGFP_171107/171107_LW1_aubago_eggs.fastq.chop.fastq-HMS-Beagle.fa.sort.fa"
+ref="/data/zhanglab/Weijia_Su/Git/circleInsertion/HMS-Beagle_circle.fa"
 
 /data/zhanglab/Weijia_Su/anaconda3/bin/time -v bash cirIns.sh $reads $ref;
