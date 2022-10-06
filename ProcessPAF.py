@@ -26,7 +26,8 @@ def SelectReads(outName,Data,circle,insertion):
 def Re_Map(outName,Reads):
 	seqtk="seqtk subseq %s %s > %s"%(Reads,outName+".candi.tsv",outName+".candi.fa")
 	os.system(seqtk)
-	genome="/data/zhanglab/Weijia_Su/Genomes/Dro/dm6.fa.masked"
+	#genome="/data/zhanglab/Weijia_Su/Genomes/Dro/dm6.fa.masked"
+	genome="/data/zhanglab/Weijia_Su/Genomes/Dro/DM6/dm6_RM_1004/dm6.fa.masked"
 	TE="/data/zhanglab/Weijia_Su/CommonDataSet/TE_full/HMS-Beagle.fasta"
 	mapping1="minimap2 -x map-ont -t 4 %s %s -Y > %s"%(genome,outName+".candi.fa",outName+".candi_Genome.paf")
 	os.system(mapping1)
@@ -45,20 +46,20 @@ def MappingRes(GenomeMapping,TEMapping):
 	
 	TEM=TEM.loc[TEM[0].isin(genomeM[0])]
 	
-	#print(genomeM[0:20])
-	#print(g1.shape)
+	print(genomeM[0:20])
+	print(g1.shape)
 
-	#print(TEM[0:20])
-	#print(t1.shape)
+	print(TEM[0:20])
+	print(t1.shape)
 
 	TEM=TEM.loc[TEM[0].isin(genomeM[0])]
 	TEM=TEM.groupby([0]).filter(lambda x: len(x)==2)
-	#print(TEM.shape)
-	#print(TEM[0:10])
+	print(TEM.shape)
+	print(TEM[0:10])
 
 
 	combine=genomeM.merge(TEM,on=[0,1],how="inner")
-	print(combine[0:10])
+	print(combine[0:20])
 	print(combine.shape)
 	c=combine.drop_duplicates([0],keep="first")
 	print(c.shape)
