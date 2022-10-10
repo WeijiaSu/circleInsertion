@@ -71,4 +71,4 @@ def MappingRes(GenomeMapping,TEMapping):
 #reads="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/NonGFP_171107/171107_LW1_aubago_eggs.fastq.chop.fastq-HMS-Beagle.fa.sort.fa"
 #Re_Map("171107_LW1_aubago_eggs_HMS",reads)
 
-MappingRes("171107_LW1_aubago_eggs_HMS.candi_Genome.paf","171107_LW1_aubago_eggs_HMS.candi_TE.paf")
+Mubago_eggs.fastq.chop.fastq-HMS-Beagle.fa.TE+GFP_.faappingRes("171107_LW1_aubago_eggs_HMS.candi_Genome.paf","171107_LW1_aubago_eggs_HMS.candi_TE.paf")
