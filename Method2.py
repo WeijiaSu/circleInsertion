@@ -30,4 +30,20 @@ def Mapping(reads):
 	mapping="minimap2 -x map-ont -t 4 %s %s -Y > %s"%(TE,reads,OutName+"_HMS.paf")
 	os.system(mapping)
 
-Mapping(OutName+"_selectedReads.fa")
+#Mapping(OutName+"_selectedReads.fa")
+
+def FilterPaf(paf):
+	f=pd.read_table(paf,header=None)
+	f=f.sort_values([0])
+	f=f[range(9)]
+	print(f[0:10])
+	print(f.shape)
+	r=f.drop_duplicates([0],keep="first")
+	print(r.shape)
+	linAli=f.groupby([0]).filter(lambda x: len(x)==1)
+	print(linAli.shape)
+	print(linAli[0:10])
+	f=f.loc[~f[0].isin(linAli[0])]
+	print(f.shape)
+	print(f.drop_duplicates([0],keep="first").shape)
+FilterPaf(OutName+"_HMS.paf")
