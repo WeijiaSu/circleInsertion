@@ -5,6 +5,7 @@ import numpy as np
 
 
 TE="/data/zhanglab/Weijia_Su/CommonDataSet/TE_full/HMS-Beagle.fasta"
+Genome="/data/zhanglab/Weijia_Su/Genomes/Dro/DM6/dm6_RM_1004/dm6.fa.masked"
 OutName="171107"
 
 
@@ -96,7 +97,7 @@ def isCircle(list1,list2):
 		else:
 			return False
 	
-def CircleType(list1,list2):
+def JunCoor(list1,list2):
 
 	n1,n2,n3,n4=list1[0],list1[1],list2[0],list2[1]
 	t1,t2,t3,t4=list1[2],list1[3],list2[2],list2[3]
@@ -128,9 +129,9 @@ def JunctionReads(chemReads):
 			j=i+1
 			while j < len(l):
 				list2=l[j]
-				cirType=CircleType(list1,list2)
-				if cirType!="NC":
-					d[r]=cirType
+				Jcoor=JunCoor(list1,list2)
+				if Jcoor!="NC":
+					d[r]=Jcoor
 					break
 				else:
 					j+=1
@@ -143,4 +144,68 @@ def JunctionReads(chemReads):
 	
 #JunctionReads(OutName+"_chemReads.tsv")
 
+def circleType(x):
+    cirCle_S=int(x.split("_")[0])
+    cirCle_E=int(x.split("_")[1])
+    cirCle_D=int(x.split("_")[-1])
+    if cirCle_S <100 and cirCle_E>7062-100 and cirCle_D<-100:
+        return "1LTR_FL"
+    elif cirCle_S <100 and cirCle_E>7062-100 and cirCle_D>-100:
+        return "2LTR_FL"
+    elif cirCle_S <100:
+        return "1LTR5_Frg"
+    elif cirCle_E > 7062-100:
+        return "1LTR3_Frg"
+    else:
+        return "nonLTR_Frg"
 
+Jun_type="1LTR_FL"
+def GetCirType(Junction_reads):
+	f=pd.read_table(Junction_reads,header=None)
+	f=f.loc[f[13]!="NC"]
+	f["type"]=f[13].apply(lambda x:circleType(x))
+	f.to_csv(OutName+"_JunType.tsv",index=None,header=None,sep="\t")
+
+#GetCirType(OutName+"_junction.tsv")
+
+def GenomeMaapping(Jun_reads,Jun_type,reads):
+	f=pd.read_table(Jun_reads,header=None)
+	f=f.loc[f[14]==Jun_type]
+	s=set(f[0])
+	records=SeqIO.parse(reads,"fasta")
+	SeqIO.write((rec for rec in records if rec.id in s),OutName+"_"+Jun_type+".fa","fasta")
+	mapping="minimap2 -x map-ont -t 4 %s %s -Y > %s"%(Genome,OutName+"_"+Jun_type+".fa",OutName+"_"+Jun_type+".paf")
+	os.system(mapping)
+
+#GenomeMaapping(OutName+"_JunType.tsv",Jun_type,reads)
+
+def CombineMapping(Gmap,Tmap):
+	g=pd.read_table(Gmap,header=None)
+	g=g[range(9)]
+	g=g.sort_values([0,2,3])
+	t=pd.read_table(Tmap,header=None)
+	t=t[range(9)]
+	t=t.loc[t[0].isin(g[0])]
+	t=t.sort_values([0,2,3])
+	
+	g_columns=["rName","rLen","rGenome_s","rGenome_e","strand","gName","gLen","genome_s","genome_e"]
+	t_columns=["rName","rLen","rTE_s","rTE_e","strand","tName","tLen","t_s","t_e"]
+	g.columns=g_columns
+	t.columns=t_columns
+	combined=g.merge(t,on=["rName","rLen"],how="inner")
+	combined["rTE_min"]=0
+	combined["rTE_max"]=0
+	for r in set(combined["rName"]):
+		sub=combined.loc[combined["rName"]==r]
+		min_=sub["rTE_s"].min()
+		max_=sub["rTE_e"].max()
+		combined.loc[combined["rName"]==r,"rTE_min"]=min_
+		combined.loc[combined["rName"]==r,"rTE_max"]=max_
+	
+	combined=combined.loc[(combined["rGenome_e"]<=combined["rTE_min"]+100) | (combined["rGenome_s"]>=combined["rTE_max"]-100)]
+	print(combined[0:20])
+	print(combined.shape)
+	print(len(set(combined["rName"])))
+	combined.to_csv(OutName+"_cirIns_filter1.tsv",index=None,sep="\t")
+
+CombineMapping(OutName+"_"+Jun_type+".paf",OutName+"_HMS.paf")
