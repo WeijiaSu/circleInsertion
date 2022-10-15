@@ -3,6 +3,7 @@ import os
 from Bio import SeqIO
 import numpy as np
 
+pd.set_option("display.max_columns",40)
 
 TE="/data/zhanglab/Weijia_Su/CommonDataSet/TE_full/HMS-Beagle.fasta"
 Genome="/data/zhanglab/Weijia_Su/Genomes/Dro/DM6/dm6_RM_1004/dm6.fa.masked"
@@ -208,4 +209,13 @@ def CombineMapping(Gmap,Tmap):
 	print(len(set(combined["rName"])))
 	combined.to_csv(OutName+"_cirIns_filter1.tsv",index=None,sep="\t")
 
-CombineMapping(OutName+"_"+Jun_type+".paf",OutName+"_HMS.paf")
+#CombineMapping(OutName+"_"+Jun_type+".paf",OutName+"_HMS.paf")
+
+
+def GetInsertion(CombineFile):
+	f=pd.read_table(CombineFile)
+	print(f.shape)
+	print(f[0:10])
+
+GetInsertion(OutName+"_cirIns_filter1.tsv")
+
