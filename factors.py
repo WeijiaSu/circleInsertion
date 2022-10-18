@@ -7,34 +7,21 @@ pd.set_option("display.max_columns",40)
 
 TE="/data/zhanglab/Weijia_Su/CommonDataSet/TE_full/HMS-Beagle.fasta"
 Genome="/data/zhanglab/Weijia_Su/Genomes/Dro/DM6/dm6_RM_1004/dm6.fa.masked"
-OutName="171107"
 
 
-def Selecting(reads,circle,insertion):
-	cir=pd.read_table(circle)
+def Selecting(reads,insertion):
 	ins=pd.read_table(insertion)
-
-	cir_l=set(cir["Readname"])
-	ins_l=set(ins["read"])
-	
-	print(len(cir_l))
+	ins_l=set(ins["Readname"])
 	print(len(ins_l))
 	records=SeqIO.parse(reads,"fasta")
-	SeqIO.write((rec for rec in records if rec.id not in cir_l and rec.id not in ins_l),OutName+"_selectedReads.fa","fasta")
+	SeqIO.write((rec for rec in records if rec.id not in ins_l),OutName+"_selectedReads.fa","fasta")
 
-reads="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/NonGFP_171107/171107_LW1_aubago_eggs.fastq.chop.fastq-HMS-Beagle.fa.TE+GFP_.fa"
-circle="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/NonGFP_171107/1206/171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.TE+GFP_circles.txt"
-Insertion="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/NonGFP_171107/171107_LW1_aubago_eggs.fastq.chop.fastq-HMS-Beagle.fa.TE+GFP+_AllTEInsertion_Final_insertion.tsv"
-
-
-#Selecting(reads,circle,insertion)
 
 
 def Mapping(reads):
 	mapping="minimap2 -x map-ont -t 4 %s %s -Y > %s"%(TE,reads,OutName+"_HMS.paf")
 	os.system(mapping)
 
-#Mapping(OutName+"_selectedReads.fa")
 
 def FilterPaf(paf):
 	f=pd.read_table(paf,header=None)
@@ -44,7 +31,6 @@ def FilterPaf(paf):
 	linAli=f.groupby([0]).filter(lambda x: len(x)==1)
 	f=f.loc[~f[0].isin(linAli[0])]
 	f.to_csv(OutName+"_MultiAlig.tsv",header=None,index=None,sep="\t")
-#FilterPaf(OutName+"_HMS.paf")
 
 def map_ratio(sub_f):
 	r_len=int(list(sub_f[1])[0])
@@ -65,7 +51,6 @@ def GetMapping(MulAlig):
 	print(f[0:10])
 	print(f.shape)
 
-#GetMapping(OutName+"_MultiAlig.tsv")
 
 def Junction(list1,list2):
 	n1,n2,n3,n4=list1[0],list1[1],list2[0],list2[1]
@@ -143,7 +128,6 @@ def JunctionReads(chemReads):
 	f.to_csv(OutName+"_junction.tsv",header=None,index=None,sep="\t")	
 	return f
 	
-#JunctionReads(OutName+"_chemReads.tsv")
 
 def circleType(x):
     cirCle_S=int(x.split("_")[0])
@@ -167,7 +151,6 @@ def GetCirType(Junction_reads):
 	f["type"]=f[13].apply(lambda x:circleType(x))
 	f.to_csv(OutName+"_"+Jun_type+".tsv",index=None,header=None,sep="\t")
 
-#GetCirType(OutName+"_junction.tsv")
 
 def GenomeMaapping(Jun_reads,Jun_type,reads):
 	f=pd.read_table(Jun_reads,header=None)
@@ -178,7 +161,6 @@ def GenomeMaapping(Jun_reads,Jun_type,reads):
 	mapping="minimap2 -x map-ont -t 4 %s %s -Y > %s"%(Genome,OutName+"_"+Jun_type+".fa",OutName+"_"+Jun_type+".paf")
 	os.system(mapping)
 
-#GenomeMaapping(OutName+"_JunType.tsv",Jun_type,reads)
 
 def CombineMapping(Gmap,Tmap):
 	g=pd.read_table(Gmap,header=None)
@@ -214,25 +196,28 @@ def CombineMapping(Gmap,Tmap):
 
 def GetInsertion(CombineFile):
 	f=pd.read_table(CombineFile)
-	f=f.loc[f["gName"]=="chrM"]
-
-#	f["rGen_min"]=0
-#	f["rGen_max"]=0
-#	for r in set(f["rName"]):
-#		sub=f.loc[f["rName"]==r]
-#		min_=sub["rGenome_s"].min()
-#		max_=sub["rGenome_e"].max()
-#		f.loc[f["rName"]==r,"rGen_min"]=min_
-#		f.loc[f["rName"]==r,"rGen_max"]=max_
-#	f=f.loc[(f["rGen_min"]<f["rTE_min"]) & (f["rGen_max"]>f["rTE_max"])]
-
-#	f["d1"]=f["rGenome_e"]-f["rTE_min"]
-#	f["d2"]=f["rGenome_s"]-f["rTE_max"]
-#	f["d1"]=f["d1"].apply(lambda x: abs(x))
-#	f["d2"]=f["d2"].apply(lambda x: abs(x))
-#	f=f.loc[(f["d1"]<=500) | (f["d2"]<=500)]
+	f["d1"]=f["rGenome_e"]-f["rTE_min"]
+	f["d2"]=f["rGenome_s"]-f["rTE_max"]
+	f["d1"]=f["d1"].apply(lambda x: abs(x))
+	f["d2"]=f["d2"].apply(lambda x: abs(x))
+	f=f.loc[(f["d1"]<=500) | (f["d2"]<=500)]
 	print(f.shape)
-	print(f)
+	print(f[0:10])
 	print(len(set(f["rName"])))
-GetInsertion(OutName+"_cirIns_filter1.tsv")
 
+
+#for i in ["white_combine.fastq","aub-white_combine.fastq","aub-PolQ_combine.fastq","aub-XRCC1_combine.fastq"]:
+#for i in ["aub-white_combine.fastq","aub-PolQ_combine.fastq","aub-XRCC1_combine.fastq"]:
+for i in ["aub-XRCC1_combine.fastq"]:
+	OutName=i
+	print(OutName)
+	reads="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig5/Coverage/20X/%s.20X.fastq.fa"%(i)
+	Ins="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig5/Coverage/%s.20X.fastq_dm6_insertion_Final_insertion.tsv"%(i)
+	Selecting(reads,Ins)
+	Mapping(OutName+"_selectedReads.fa")
+	FilterPaf(OutName+"_HMS.paf")
+	GetMapping(OutName+"_MultiAlig.tsv")
+	JunctionReads(OutName+"_chemReads.tsv")
+	GetCirType(OutName+"_junction.tsv")
+	GenomeMaapping(OutName+"_"+Jun_type+".tsv",Jun_type,reads)
+	CombineMapping(OutName+"_"+Jun_type+".paf",OutName+"_HMS.paf")
