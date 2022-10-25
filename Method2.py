@@ -5,9 +5,10 @@ import numpy as np
 
 pd.set_option("display.max_columns",40)
 
-TE="/data/zhanglab/Weijia_Su/CommonDataSet/TE_full/HMS-Beagle.fasta"
+#TE="/data/zhanglab/Weijia_Su/CommonDataSet/TE_full/HMS-Beagle.fasta"
+TE="/data/zhanglab/Weijia_Su/CommonDataSet/TE_full/blood.fasta"
 Genome="/data/zhanglab/Weijia_Su/Genomes/Dro/DM6/dm6_RM_1004/dm6.fa.masked"
-OutName="171107"
+OutName="171107_blood"
 
 
 def Selecting(reads,circle,insertion):
@@ -22,19 +23,19 @@ def Selecting(reads,circle,insertion):
 	records=SeqIO.parse(reads,"fasta")
 	SeqIO.write((rec for rec in records if rec.id not in cir_l and rec.id not in ins_l),OutName+"_selectedReads.fa","fasta")
 
-reads="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/NonGFP_171107/171107_LW1_aubago_eggs.fastq.chop.fastq-HMS-Beagle.fa.TE+GFP_.fa"
-circle="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/NonGFP_171107/1206/171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.TE+GFP_circles.txt"
-Insertion="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/NonGFP_171107/171107_LW1_aubago_eggs.fastq.chop.fastq-HMS-Beagle.fa.TE+GFP+_AllTEInsertion_Final_insertion.tsv"
+#reads="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/NonGFP_171107/171107_LW1_aubago_eggs.fastq.chop.fastq-HMS-Beagle.fa.TE+GFP_.fa"
+#circle="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/NonGFP_171107/1206/171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.TE+GFP_circles.txt"
+#Insertion="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/NonGFP_171107/171107_LW1_aubago_eggs.fastq.chop.fastq-HMS-Beagle.fa.TE+GFP+_AllTEInsertion_Final_insertion.tsv"
 
 
 #Selecting(reads,circle,insertion)
-
+reads="171107_blood_selectedReads.fa"
 
 def Mapping(reads):
 	mapping="minimap2 -x map-ont -t 4 %s %s -Y > %s"%(TE,reads,OutName+"_HMS.paf")
 	os.system(mapping)
 
-#Mapping(OutName+"_selectedReads.fa")
+Mapping(OutName+"_selectedReads.fa")
 
 def FilterPaf(paf):
 	f=pd.read_table(paf,header=None)
@@ -178,7 +179,7 @@ def GenomeMaapping(Jun_reads,Jun_type,reads):
 	mapping="minimap2 -x map-ont -t 4 %s %s -Y > %s"%(Genome,OutName+"_"+Jun_type+".fa",OutName+"_"+Jun_type+".paf")
 	os.system(mapping)
 
-#GenomeMaapping(OutName+"_JunType.tsv",Jun_type,reads)
+GenomeMaapping(OutName+"_JunType.tsv",Jun_type,reads)
 
 def CombineMapping(Gmap,Tmap):
 	g=pd.read_table(Gmap,header=None)
@@ -209,7 +210,7 @@ def CombineMapping(Gmap,Tmap):
 	print(len(set(combined["rName"])))
 	combined.to_csv(OutName+"_cirIns_filter1.tsv",index=None,sep="\t")
 
-#CombineMapping(OutName+"_"+Jun_type+".paf",OutName+"_HMS.paf")
+CombineMapping(OutName+"_"+Jun_type+".paf",OutName+"_HMS.paf")
 
 
 def GetInsertion(CombineFile):
