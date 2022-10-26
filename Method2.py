@@ -6,46 +6,21 @@ import numpy as np
 pd.set_option("display.max_columns",40)
 
 #TE="/data/zhanglab/Weijia_Su/CommonDataSet/TE_full/HMS-Beagle.fasta"
-TE="/data/zhanglab/Weijia_Su/CommonDataSet/TE_full/blood.fasta"
+TE="/data/zhanglab/Weijia_Su/CommonDataSet/TE_full.fa"
 Genome="/data/zhanglab/Weijia_Su/Genomes/Dro/DM6/dm6_RM_1004/dm6.fa.masked"
-OutName="171107_blood"
-
-
-def Selecting(reads,circle,insertion):
-	cir=pd.read_table(circle)
-	ins=pd.read_table(insertion)
-
-	cir_l=set(cir["Readname"])
-	ins_l=set(ins["read"])
-	
-	print(len(cir_l))
-	print(len(ins_l))
-	records=SeqIO.parse(reads,"fasta")
-	SeqIO.write((rec for rec in records if rec.id not in cir_l and rec.id not in ins_l),OutName+"_selectedReads.fa","fasta")
-
-#reads="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/NonGFP_171107/171107_LW1_aubago_eggs.fastq.chop.fastq-HMS-Beagle.fa.TE+GFP_.fa"
-#circle="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/NonGFP_171107/1206/171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.TE+GFP_circles.txt"
-#Insertion="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/NonGFP_171107/171107_LW1_aubago_eggs.fastq.chop.fastq-HMS-Beagle.fa.TE+GFP+_AllTEInsertion_Final_insertion.tsv"
-
-
-#Selecting(reads,circle,insertion)
-reads="171107_blood_selectedReads.fa"
-
-def Mapping(reads):
-	mapping="minimap2 -x map-ont -t 4 %s %s -Y > %s"%(TE,reads,OutName+"_HMS.paf")
-	os.system(mapping)
-
-Mapping(OutName+"_selectedReads.fa")
+OutName="171107_allTE"
+reads="/data/zhanglab/Weijia_Su/Nanopore_Raw_Data/171107_LW1/Fly_HMS-Beagle-GFP_TEactive_gDNA.fastq"
 
 def FilterPaf(paf):
 	f=pd.read_table(paf,header=None)
-	f=f.sort_values([0])
-	f=f[range(11)]
-	r=f.drop_duplicates([0],keep="first")
+	print(f[0:10])
+	print(f.shape)
 	linAli=f.groupby([0]).filter(lambda x: len(x)==1)
 	f=f.loc[~f[0].isin(linAli[0])]
+	print(f.shape)
 	f.to_csv(OutName+"_MultiAlig.tsv",header=None,index=None,sep="\t")
-#FilterPaf(OutName+"_HMS.paf")
+
+FilterPaf(OutName+"_TEmap.paf")
 
 def map_ratio(sub_f):
 	r_len=int(list(sub_f[1])[0])
@@ -144,7 +119,7 @@ def JunctionReads(chemReads):
 	f.to_csv(OutName+"_junction.tsv",header=None,index=None,sep="\t")	
 	return f
 	
-#JunctionReads(OutName+"_chemReads.tsv")
+#JunctionReads(OutName+"_MultiAlig.tsv")
 
 def circleType(x):
     cirCle_S=int(x.split("_")[0])
@@ -161,7 +136,7 @@ def circleType(x):
     else:
         return "nonLTR_Frg"
 
-Jun_type="1LTR_FL"
+#Jun_type="1LTR_FL"
 def GetCirType(Junction_reads):
 	f=pd.read_table(Junction_reads,header=None)
 	f=f.loc[f[13]!="NC"]
@@ -179,7 +154,7 @@ def GenomeMaapping(Jun_reads,Jun_type,reads):
 	mapping="minimap2 -x map-ont -t 4 %s %s -Y > %s"%(Genome,OutName+"_"+Jun_type+".fa",OutName+"_"+Jun_type+".paf")
 	os.system(mapping)
 
-GenomeMaapping(OutName+"_JunType.tsv",Jun_type,reads)
+#GenomeMaapping(OutName+"_JunType.tsv",Jun_type,reads)
 
 def CombineMapping(Gmap,Tmap):
 	g=pd.read_table(Gmap,header=None)
@@ -210,7 +185,7 @@ def CombineMapping(Gmap,Tmap):
 	print(len(set(combined["rName"])))
 	combined.to_csv(OutName+"_cirIns_filter1.tsv",index=None,sep="\t")
 
-CombineMapping(OutName+"_"+Jun_type+".paf",OutName+"_HMS.paf")
+#CombineMapping(OutName+"_"+Jun_type+".paf",OutName+"_HMS.paf")
 
 
 def GetInsertion(CombineFile):
@@ -235,5 +210,5 @@ def GetInsertion(CombineFile):
 	print(f.shape)
 	print(f)
 	print(len(set(f["rName"])))
-GetInsertion(OutName+"_cirIns_filter1.tsv")
+#GetInsertion(OutName+"_cirIns_filter1.tsv")
 
