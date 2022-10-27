@@ -10,9 +10,12 @@ TE="/data/zhanglab/Weijia_Su/CommonDataSet/TE_full.fa"
 Genome="/data/zhanglab/Weijia_Su/Genomes/Dro/DM6/dm6_RM_1004/dm6.fa.masked"
 OutName="171107_allTE"
 reads="/data/zhanglab/Weijia_Su/Nanopore_Raw_Data/171107_LW1/Fly_HMS-Beagle-GFP_TEactive_gDNA.fastq"
+Jun_type="1LTR_FL"
+
+
 
 def FilterPaf(paf):
-	f=pd.read_table(paf,header=None)
+	f=pd.read_table(paf,header=None,sep=" ")
 	print(f[0:10])
 	print(f.shape)
 	linAli=f.groupby([0]).filter(lambda x: len(x)==1)
@@ -20,7 +23,7 @@ def FilterPaf(paf):
 	print(f.shape)
 	f.to_csv(OutName+"_MultiAlig.tsv",header=None,index=None,sep="\t")
 
-FilterPaf(OutName+"_TEmap.paf")
+#FilterPaf(OutName+"_TEmap.paf")
 
 def map_ratio(sub_f):
 	r_len=int(list(sub_f[1])[0])
@@ -90,15 +93,20 @@ def JunCoor(list1,list2):
 	else:
 		return str(t_min)+"_"+str(t_max)+"_"+str(Overlap)
 
-def JunctionReads(chemReads):
-	f=pd.read_table(chemReads,header=None)
-	f[12]=f[1]-f[11]
-	f=f.loc[f[12]>=100]
+def JunctionReads(mutiAlig):
+	f=pd.read_table(mutiAlig,header=None)
+	f["info"]=f[0]+"_"+f[5]
+	print(f[0:10])
+	print(f.shape)
+	print(len(set(f[0])))
+	f["info"]=f[0]+"_"+f[5]
+#	f[12]=f[1]-f[11]
+#	f=f.loc[f[12]>=100]
 	f=f.sort_values([0,2,3])
 	d={}
-	for r in set(f[0]):
+	for r in set(f["info"]):
 		d[r]="NC"
-		sub=f.loc[f[0]==r]
+		sub=f.loc[f["info"]==r]
 		l=list(zip(sub[2],sub[3],sub[7],sub[8],sub[4],sub[6],sub[1]))
 		i=0
 		while i<len(l)-1:
@@ -115,7 +123,7 @@ def JunctionReads(chemReads):
 			else:
 				i+=1
 			break
-	f[13]=f[0].apply(lambda x: d[x])
+	f[13]=f["info"].apply(lambda x: d[x])
 	f.to_csv(OutName+"_junction.tsv",header=None,index=None,sep="\t")	
 	return f
 	
@@ -136,37 +144,41 @@ def circleType(x):
     else:
         return "nonLTR_Frg"
 
-#Jun_type="1LTR_FL"
 def GetCirType(Junction_reads):
 	f=pd.read_table(Junction_reads,header=None)
-	f=f.loc[f[13]!="NC"]
-	f["type"]=f[13].apply(lambda x:circleType(x))
-	f.to_csv(OutName+"_"+Jun_type+".tsv",index=None,header=None,sep="\t")
+	f=f.loc[f[14]!="NC"]
+	f["Type"]=f[14].apply(lambda x:circleType(x))
+	f.to_csv(OutName+"_Type.tsv",index=None,header=None,sep="\t")
 
 #GetCirType(OutName+"_junction.tsv")
 
 def GenomeMaapping(Jun_reads,Jun_type,reads):
 	f=pd.read_table(Jun_reads,header=None)
-	f=f.loc[f[14]==Jun_type]
+	f=f.loc[f[15]==Jun_type]
+	print(f[0:10])
+	print(f.shape)
 	s=set(f[0])
-	records=SeqIO.parse(reads,"fasta")
+	print(len(s))
+	records=SeqIO.parse(reads,"fastq")
 	SeqIO.write((rec for rec in records if rec.id in s),OutName+"_"+Jun_type+".fa","fasta")
-	mapping="minimap2 -x map-ont -t 4 %s %s -Y > %s"%(Genome,OutName+"_"+Jun_type+".fa",OutName+"_"+Jun_type+".paf")
+	mapping="minimap2 -x map-ont -t 4 %s %s -Y | awk '{for(i=1;i<=12;i++) printf $i" "; print ""}' FS='\t' > %s"%(Genome,OutName+"_"+Jun_type+".fa",OutName+"_"+Jun_type+".paf")
 	os.system(mapping)
 
-#GenomeMaapping(OutName+"_JunType.tsv",Jun_type,reads)
+#GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
+
 
 def CombineMapping(Gmap,Tmap):
-	g=pd.read_table(Gmap,header=None)
-	g=g[range(9)]
+	g=pd.read_table(Gmap,header=None,sep=" ")
 	g=g.sort_values([0,2,3])
-	t=pd.read_table(Tmap,header=None)
-	t=t[range(9)]
+	g=g[range(0,12)]
+	print(g[0:10])
+	t=pd.read_table(Tmap,header=None,sep=" ")
 	t=t.loc[t[0].isin(g[0])]
 	t=t.sort_values([0,2,3])
-	
-	g_columns=["rName","rLen","rGenome_s","rGenome_e","strand","gName","gLen","genome_s","genome_e"]
-	t_columns=["rName","rLen","rTE_s","rTE_e","strand","tName","tLen","t_s","t_e"]
+	t=t[range(0,12)]
+	print(t[0:10])
+	g_columns=["rName","rLen","rGenome_s","rGenome_e","strand","gName","gLen","genome_s","genome_e","genome_match","genome_align","genome_score"]
+	t_columns=["rName","rLen","rTE_s","rTE_e","strand","tName","tLen","t_s","t_e","te_match","te_align","te_score"]
 	g.columns=g_columns
 	t.columns=t_columns
 	combined=g.merge(t,on=["rName","rLen"],how="inner")
@@ -185,13 +197,17 @@ def CombineMapping(Gmap,Tmap):
 	print(len(set(combined["rName"])))
 	combined.to_csv(OutName+"_cirIns_filter1.tsv",index=None,sep="\t")
 
-#CombineMapping(OutName+"_"+Jun_type+".paf",OutName+"_HMS.paf")
+#CombineMapping(OutName+"_"+Jun_type+".paf",OutName+"_TEmap.paf")
 
 
 def GetInsertion(CombineFile):
 	f=pd.read_table(CombineFile)
+	f=f.loc[f["tName"]!="HMS-Beagle"]
 	f=f.loc[f["gName"]=="chrM"]
-
+	r=list(set(f["rName"]))
+	for read in r[0:2]:
+		sub=f.loc[f["rName"]==read]
+		print(sub)
 #	f["rGen_min"]=0
 #	f["rGen_max"]=0
 #	for r in set(f["rName"]):
@@ -207,8 +223,8 @@ def GetInsertion(CombineFile):
 #	f["d1"]=f["d1"].apply(lambda x: abs(x))
 #	f["d2"]=f["d2"].apply(lambda x: abs(x))
 #	f=f.loc[(f["d1"]<=500) | (f["d2"]<=500)]
-	print(f.shape)
-	print(f)
-	print(len(set(f["rName"])))
-#GetInsertion(OutName+"_cirIns_filter1.tsv")
+#	print(f.shape)
+#	print(f)
+#	print(len(set(f["rName"])))
+GetInsertion(OutName+"_cirIns_filter1.tsv")
 
