@@ -202,12 +202,16 @@ def CombineMapping(Gmap,Tmap):
 
 def GetInsertion(CombineFile):
 	f=pd.read_table(CombineFile)
-	f=f.loc[f["tName"]!="HMS-Beagle"]
-	f=f.loc[f["gName"]=="chrM"]
-	r=list(set(f["rName"]))
-	for read in r[0:2]:
+	#f=f.loc[f["tName"]!="HMS-Beagle"]
+	fm=f.loc[f["gName"]=="chrM"]
+	r=list(set(list(fm["rName"])))
+	print(len(r))
+	for read in r[20:]:
+		print(r.index(read))
 		sub=f.loc[f["rName"]==read]
+		print("##################################")
 		print(sub)
+		print("")
 #	f["rGen_min"]=0
 #	f["rGen_max"]=0
 #	for r in set(f["rName"]):
