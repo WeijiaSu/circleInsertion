@@ -217,8 +217,8 @@ CombineMapping(OutName+"_"+Jun_type+"Gmap.tsv",OutName+"_"+Jun_type+"Tmap.tsv")
 
 def GetInsertion(CombineFile):
 	f=pd.read_table(CombineFile)
-	a=f.loc[f["rName"]=="dc02a69d-74f8-462f-a381-727ae5116260"]
-	print(a[-50:])
+	a=f.loc[f["rName"]=="38144642-1e3e-4a72-b5ff-9705bdb76ec9"]
+	print(a)
 	#print(f.shape)
 	r=list(set(list(f["rName"])))
 	#print(len(r))
