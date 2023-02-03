@@ -63,7 +63,7 @@ def getJunction(blastn):
 					t_min=min([t1,t2,t3,t4])
 					t_max=max([t1,t2,t3,t4])
 					s_local=sub.loc[(sub[11]>=t_min-5000) & (sub[12]<=t_max+5000)]
-					if s_local.shape[0]<3:
+					if s_local.shape[0]>0:
 						f.loc[(f[14]==r)&(f[4]==list1[0])&(f[5]==list1[1])&(f[11]==list1[2])&(f[12]==list1[3]),15]=Junc
 					
 						f.loc[(f[14]==r)&(f[4]==list2[0])&(f[5]==list2[1])&(f[11]==list2[2])&(f[12]==list2[3]),15]=Junc
@@ -73,8 +73,7 @@ def getJunction(blastn):
 			i+=1
 	s=f.loc[f[15]!=False]
 	f.to_csv(blastn+"sel.tsv",header=None,index=None,sep="\t")
-	print(s.shape)
-	print(s[0:20])
+	print(s2[0:20])
 
 blast=sys.argv[1]
 getJunction(blast)
