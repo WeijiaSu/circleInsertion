@@ -129,73 +129,79 @@ def GetCirType(Junction_reads):
 	f=pd.read_table(Junction_reads,header=None)
 	f=f.loc[f[16]!="NC"]
 	f["Type"]=f[16].apply(lambda x:circleType(x))
-	#f.to_csv(OutName+"_Type.tsv",index=None,header=None,sep="\t")
+	f.to_csv(OutName+"_Type.tsv",index=None,header=None,sep="\t")
 	print(f[0:10])
-GetCirType(OutName+"_junction.tsv")
+#GetCirType(OutName+"_junction.tsv")
 #
-#def CombineMapping(Gmap,Tmap):
-#	g=pd.read_table(Gmap,header=None,sep=" ")
-#	g=g.sort_values([0,2,3])
-#	g=g[range(0,12)]
-#	print(g[0:10])
-#	t=pd.read_table(Tmap,header=None,sep=" ")
-#	t=t.loc[t[0].isin(g[0])]
-#	t=t.sort_values([0,2,3])
-#	t=t[range(0,12)]
-#	print(t[0:10])
-#	g_columns=["rName","rLen","rGenome_s","rGenome_e","strand","gName","gLen","genome_s","genome_e","genome_match","genome_align","genome_score"]
-#	t_columns=["rName","rLen","rTE_s","rTE_e","strand","tName","tLen","t_s","t_e","te_match","te_align","te_score"]
-#	g.columns=g_columns
-#	t.columns=t_columns
-#	combined=g.merge(t,on=["rName","rLen"],how="inner")
-#	combined["rTE_min"]=0
-#	combined["rTE_max"]=0
-#	for r in set(combined["rName"]):
-#		sub=combined.loc[combined["rName"]==r]
-#		min_=sub["rTE_s"].min()
-#		max_=sub["rTE_e"].max()
-#		combined.loc[combined["rName"]==r,"rTE_min"]=min_
-#		combined.loc[combined["rName"]==r,"rTE_max"]=max_
-#	
-#	combined=combined.loc[(combined["rGenome_e"]<=combined["rTE_min"]+100) | (combined["rGenome_s"]>=combined["rTE_max"]-100)]
-#	print(combined[0:20])
-#	print(combined.shape)
-#	print(len(set(combined["rName"])))
-#	combined.to_csv(OutName+"_cirIns_filter1.tsv",index=None,sep="\t")
-#
+def CombineMapping(Gmap,Tmap):
+	g=pd.read_table(Gmap,header=None,sep=" ")
+	g=g.sort_values([0,2,3])
+	g=g[range(0,12)]
+	print(g[0:10])
+	t=pd.read_table(Tmap,header=None,sep=" ")
+	t=t.loc[t[0].isin(g[0])]
+	t=t.sort_values([0,2,3])
+	t=t[range(0,12)]
+	print(t[0:10])
+	g_columns=["rName","rLen","rGenome_s","rGenome_e","strand","gName","gLen","genome_s","genome_e","genome_match","genome_align","genome_score"]
+	t_columns=["rName","rLen","rTE_s","rTE_e","strand","tName","tLen","t_s","t_e","te_match","te_align","te_score"]
+	g.columns=g_columns
+	t.columns=t_columns
+	combined=g.merge(t,on=["rName","rLen"],how="inner")
+	combined["rTE_min"]=0
+	combined["rTE_max"]=0
+	for r in set(combined["rName"]):
+		sub=combined.loc[combined["rName"]==r]
+		min_=sub["rTE_s"].min()
+		max_=sub["rTE_e"].max()
+		combined.loc[combined["rName"]==r,"rTE_min"]=min_
+		combined.loc[combined["rName"]==r,"rTE_max"]=max_
+	
+	combined=combined.loc[(combined["rGenome_e"]<=combined["rTE_min"]+100) | (combined["rGenome_s"]>=combined["rTE_max"]-100)]
+	print(combined[0:20])
+	print(combined.shape)
+	print(len(set(combined["rName"])))
+	combined.to_csv(OutName+"_cirIns_filter1.tsv",index=None,sep="\t")
+
 ##CombineMapping(OutName+"_"+Jun_type+".paf",OutName+"_TEmap.paf")
 #
 #
-#def GetInsertion(CombineFile):
-#	f=pd.read_table(CombineFile)
-#	#f=f.loc[f["tName"]!="HMS-Beagle"]
-#	fm=f.loc[f["gName"]=="chrM"]
-#	r=list(set(list(fm["rName"])))
-#	print(len(r))
-#	for read in r[20:]:
-#		print(r.index(read))
-#		sub=f.loc[f["rName"]==read]
-#		print("##################################")
-#		print(sub)
-#		print("")
-##	f["rGen_min"]=0
-##	f["rGen_max"]=0
-##	for r in set(f["rName"]):
-##		sub=f.loc[f["rName"]==r]
-##		min_=sub["rGenome_s"].min()
-##		max_=sub["rGenome_e"].max()
-##		f.loc[f["rName"]==r,"rGen_min"]=min_
-##		f.loc[f["rName"]==r,"rGen_max"]=max_
-##	f=f.loc[(f["rGen_min"]<f["rTE_min"]) & (f["rGen_max"]>f["rTE_max"])]
-#
-##	f["d1"]=f["rGenome_e"]-f["rTE_min"]
-##	f["d2"]=f["rGenome_s"]-f["rTE_max"]
-##	f["d1"]=f["d1"].apply(lambda x: abs(x))
-##	f["d2"]=f["d2"].apply(lambda x: abs(x))
-##	f=f.loc[(f["d1"]<=500) | (f["d2"]<=500)]
-##	print(f.shape)
-##	print(f)
-##	print(len(set(f["rName"])))
+def GetInsertion(CombineFile):
+	f=pd.read_table(CombineFile)
+	#f=f.loc[f["tName"]!="HMS-Beagle"]
+	fm=f.loc[f["gName"]=="chrM"]
+	r=list(set(list(fm["rName"])))
+	print(len(r))
+	for read in r[20:]:
+		print(r.index(read))
+		sub=f.loc[f["rName"]==read]
+		print("##################################")
+		print(sub)
+		print("")
+	f["rGen_min"]=0
+	f["rGen_max"]=0
+	for r in set(f["rName"]):
+		sub=f.loc[f["rName"]==r]
+		min_=sub["rGenome_s"].min()
+		max_=sub["rGenome_e"].max()
+		f.loc[f["rName"]==r,"rGen_min"]=min_
+		f.loc[f["rName"]==r,"rGen_max"]=max_
+	f=f.loc[(f["rGen_min"]<f["rTE_min"]) & (f["rGen_max"]>f["rTE_max"])]
+
+	f["d1"]=f["rGenome_e"]-f["rTE_min"]
+	f["d2"]=f["rGenome_s"]-f["rTE_max"]
+	f["d1"]=f["d1"].apply(lambda x: abs(x))
+	f["d2"]=f["d2"].apply(lambda x: abs(x))
+	f=f.loc[(f["d1"]<=500) | (f["d2"]<=500)]
+	print(f.shape)
+	print(f)
+	print(len(set(f["rName"])))
 #GetInsertion(OutName+"_cirIns_filter1.tsv")
 #
+FilterPaf(TEmap)
+merge(OutName+"_MultiAlig.tsv")
+JunctionReads(OutName+"_MultiAlig_len.tsv")
+GetCirType(OutName+"_junction.tsv")
+CombineMapping(OutName+"_"+Jun_type+".paf",OutName+"_TEmap.paf")
+GetInsertion(OutName+"_cirIns_filter1.tsv")
 
