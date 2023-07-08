@@ -73,7 +73,8 @@ def getJunction(blastn):
 			i+=1
 	s=f.loc[f[15]!=False]
 	f.to_csv(blastn+"sel.tsv",header=None,index=None,sep="\t")
-	print(s2[0:20])
+	print(s[50:])
+	print(s.shape)
 
 blast=sys.argv[1]
 getJunction(blast)

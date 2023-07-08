@@ -27,7 +27,7 @@ def FilterPaf(paf):
 	print(f.shape)
 	f.to_csv(OutName+"_MultiAlig.tsv",header=None,index=None,sep="\t")
 
-#FilterPaf(OutName+"_TEmap.paf")
+FilterPaf(OutName+"_TEmap.paf")
 
 def map_ratio(sub_f):
 	r_len=int(list(sub_f[1])[0])
@@ -49,7 +49,7 @@ def GetMapping(MulAlig):
 	print(f[0:10])
 	print(f.shape)
 
-#GetMapping(OutName+"_MultiAlig.tsv")
+GetMapping(OutName+"_MultiAlig.tsv")
 
 def Junction(list1,list2):
 	n1,n2,n3,n4=list1[0],list1[1],list2[0],list2[1]
@@ -132,7 +132,7 @@ def JunctionReads(mutiAlig):
 	f.to_csv(OutName+"_junction.tsv",header=None,index=None,sep="\t")	
 	return f
 	
-#JunctionReads(OutName+"_MultiAlig.tsv")
+JunctionReads(OutName+"_MultiAlig.tsv")
 
 TElengt=9408
 def circleType(x,TElength):
@@ -156,7 +156,7 @@ def GetCirType(Junction_reads):
 	f["Type"]=f[14].apply(lambda x:circleType(x,TElengt))
 	f.to_csv(OutName+"_Type.tsv",index=None,header=None,sep="\t")
 
-#GetCirType(OutName+"_junction.tsv")
+GetCirType(OutName+"_junction.tsv")
 
 def GenomeMaapping(Jun_reads,Jun_type,reads):
 	f=pd.read_table(Jun_reads,header=None)
@@ -175,7 +175,7 @@ def GenomeMaapping(Jun_reads,Jun_type,reads):
 	tmap=tmap.loc[tmap[0].isin(list(f[0]))]
 	tmap.to_csv(OutName+"_"+Jun_type+"Tmap.tsv",header=None,index=None,sep=" ")
 
-#GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
+GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
 
 
 def CombineMapping(Gmap,Tmap):
