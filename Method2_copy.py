@@ -27,6 +27,8 @@ def FilterPaf(paf):
 	print(f.shape)
 	f.to_csv(OutName+"_MultiAlig.tsv",header=None,index=None,sep="\t")
 
+FilterPaf(OutName+"_TEmap.paf")
+
 def map_ratio(sub_f):
 	r_len=int(list(sub_f[1])[0])
 	l=zip(sub_f[2],sub_f[3])
@@ -47,6 +49,7 @@ def GetMapping(MulAlig):
 	print(f[0:10])
 	print(f.shape)
 
+GetMapping(OutName+"_MultiAlig.tsv")
 
 def Junction(list1,list2):
 	n1,n2,n3,n4=list1[0],list1[1],list2[0],list2[1]
@@ -129,8 +132,9 @@ def JunctionReads(mutiAlig):
 	f.to_csv(OutName+"_junction.tsv",header=None,index=None,sep="\t")	
 	return f
 	
+JunctionReads(OutName+"_MultiAlig.tsv")
 
-TElengt=7062
+TElengt=9408
 def circleType(x,TElength):
     cirCle_S=int(x.split("_")[0])
     cirCle_E=int(x.split("_")[1])
@@ -152,6 +156,8 @@ def GetCirType(Junction_reads):
 	f["Type"]=f[14].apply(lambda x:circleType(x,TElengt))
 	f.to_csv(OutName+"_Type.tsv",index=None,header=None,sep="\t")
 
+GetCirType(OutName+"_junction.tsv")
+
 def GenomeMaapping(Jun_reads,Jun_type,reads):
 	f=pd.read_table(Jun_reads,header=None)
 	print(f[0:10])
@@ -168,6 +174,9 @@ def GenomeMaapping(Jun_reads,Jun_type,reads):
 	tmap=pd.read_table("171107_GFP_TE.paf",header=None,sep=" ")
 	tmap=tmap.loc[tmap[0].isin(list(f[0]))]
 	tmap.to_csv(OutName+"_"+Jun_type+"Tmap.tsv",header=None,index=None,sep=" ")
+
+GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
+
 
 def CombineMapping(Gmap,Tmap):
 	g=pd.read_table(Gmap,header=None,sep=" ")
@@ -203,6 +212,8 @@ def CombineMapping(Gmap,Tmap):
 	print(len(set(combined["rName"])))
 	combined.to_csv(OutName+"_"+Jun_type+"_cirIns_filter1.tsv",index=None,sep="\t")
 
+CombineMapping(OutName+"_"+Jun_type+"Gmap.tsv",OutName+"_"+Jun_type+"Tmap.tsv")
+
 
 def GetInsertion(CombineFile):
 	f=pd.read_table(CombineFile)
@@ -212,40 +223,33 @@ def GetInsertion(CombineFile):
 	r=list(set(list(f["rName"])))
 	#print(len(r))
 	print(r)
-	f=f.loc[f["tName"]!="HMS-Beagle"]
-	fm=f.loc[f["gName"]=="chrM"]
-	r=list(set(list(fm["rName"])))
-	print(len(r))
-	for read in r[20:]:
-		print(r.index(read))
-		sub=f.loc[f["rName"]==read]
-		print("##################################")
-		print(sub)
-		print("")
-	f["rGen_min"]=0
-	f["rGen_max"]=0
-	for r in set(f["rName"]):
-		sub=f.loc[f["rName"]==r]
-		min_=sub["rGenome_s"].min()
-		max_=sub["rGenome_e"].max()
-		f.loc[f["rName"]==r,"rGen_min"]=min_
-		f.loc[f["rName"]==r,"rGen_max"]=max_
-	f=f.loc[(f["rGen_min"]<f["rTE_min"]) & (f["rGen_max"]>f["rTE_max"])]
+#f=f.loc[f["tName"]!="HMS-Beagle"]
+#	fm=f.loc[f["gName"]=="chrM"]
+#	r=list(set(list(fm["rName"])))
+#	print(len(r))
+#	for read in r[20:]:
+#		print(r.index(read))
+#		sub=f.loc[f["rName"]==read]
+#		print("##################################")
+#		print(sub)
+#		print("")
+#	f["rGen_min"]=0
+#	f["rGen_max"]=0
+#	for r in set(f["rName"]):
+#		sub=f.loc[f["rName"]==r]
+#		min_=sub["rGenome_s"].min()
+#		max_=sub["rGenome_e"].max()
+#		f.loc[f["rName"]==r,"rGen_min"]=min_
+#		f.loc[f["rName"]==r,"rGen_max"]=max_
+#	f=f.loc[(f["rGen_min"]<f["rTE_min"]) & (f["rGen_max"]>f["rTE_max"])]
 
-	f["d1"]=f["rGenome_e"]-f["rTE_min"]
-	f["d2"]=f["rGenome_s"]-f["rTE_max"]
-	f["d1"]=f["d1"].apply(lambda x: abs(x))
-	f["d2"]=f["d2"].apply(lambda x: abs(x))
-	f=f.loc[(f["d1"]<=500) | (f["d2"]<=500)]
-	print(f.shape)
-	print(f)
-	print(len(set(f["rName"])))
-
-FilterPaf(OutName+"_TEmap.paf")
-GetMapping(OutName+"_MultiAlig.tsv")
-JunctionReads(OutName+"_MultiAlig.tsv")
-GetCirType(OutName+"_junction.tsv")
-GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
-CombineMapping(OutName+"_"+Jun_type+"Gmap.tsv",OutName+"_"+Jun_type+"Tmap.tsv")
+#	f["d1"]=f["rGenome_e"]-f["rTE_min"]
+#	f["d2"]=f["rGenome_s"]-f["rTE_max"]
+#	f["d1"]=f["d1"].apply(lambda x: abs(x))
+#	f["d2"]=f["d2"].apply(lambda x: abs(x))
+#	f=f.loc[(f["d1"]<=500) | (f["d2"]<=500)]
+#	print(f.shape)
+#	print(f)
+#	print(len(set(f["rName"])))
 GetInsertion(OutName+"_"+Jun_type+"_cirIns_filter1.tsv")
 
