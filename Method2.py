@@ -6,43 +6,18 @@ import numpy as np
 pd.set_option("display.max_columns",40)
 
 #TE="/data/zhanglab/Weijia_Su/CommonDataSet/TE_full/HMS-Beagle.fasta"
-#TE="/data/zhanglab/Weijia_Su/CommonDataSet/TE_full.fa"
-TE="/data/zhanglab/Weijia_Su/CommonDataSet/HMS-Beagle_GPF.fa"
+TE="/data/zhanglab/Weijia_Su/CommonDataSet/TE_full.fa"
+#TE="/data/zhanglab/Weijia_Su/CommonDataSet/HMS-Beagle_GPF.fa"
 Genome="/data/zhanglab/Weijia_Su/Genomes/Dro/DM6/dm6_RM_1004/dm6.fa.masked"
-#OutName="171107_allTE"
-#OutName="171107"
-OutName="171107_GFP"
-#reads="/data/zhanglab/Weijia_Su/Nanopore_Raw_Data/171107_LW1/Fly_HMS-Beagle-GFP_TEactive_gDNA.fastq"
-reads="/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig1/GFP_171107/211203/171107_LW1_aubago_eggs.fastq.chop.fastq-HMS-Beagle.fa.TE+GFP+.fa"
+#OutName="171107_GFP"
+OutName="barcode05"
+reads="/data/zhanglab/Weijia_Su/eccDNA/230619_fly_F2egg_Lig4Aub_gDNA_Tn5/barcode01.fastq.pre.fastq"
 Jun_type="1LTR_FL"
 
 
-
-def FilterPaf(paf):
-	f=pd.read_table(paf,header=None,sep=" ")
-	print(f[0:10])
-	print(f.shape)
-	linAli=f.groupby([0]).filter(lambda x: len(x)==1)
-	f=f.loc[~f[0].isin(linAli[0])]
-	print(f.shape)
-	f.to_csv(OutName+"_MultiAlig.tsv",header=None,index=None,sep="\t")
-
-def map_ratio(sub_f):
-	r_len=int(list(sub_f[1])[0])
-	l=zip(sub_f[2],sub_f[3])
-	a=np.array([0]*r_len)
-	for i in l:
-		a[i[0]:i[1]+1]=1
-	return list(a).count(1)
-
 def GetMapping(MulAlig):
 	f=pd.read_table(MulAlig,header=None)
-	f["mLen"]=0
-	for r in set(f[0]):
-		sub_f=f.loc[f[0]==r]
-		p=map_ratio(sub_f)
-		f.loc[f[0]==r,"mLen"]=p
-	
+	f=f.loc[f[""]]	
 	f.to_csv(OutName+"_chemReads.tsv",header=None,index=None,sep="\t")
 	print(f[0:10])
 	print(f.shape)
@@ -241,7 +216,7 @@ def GetInsertion(CombineFile):
 	print(f)
 	print(len(set(f["rName"])))
 
-FilterPaf(OutName+"_TEmap.paf")
+FilterPaf(OutName+".fastq_TE.paf")
 GetMapping(OutName+"_MultiAlig.tsv")
 JunctionReads(OutName+"_MultiAlig.tsv")
 GetCirType(OutName+"_junction.tsv")
