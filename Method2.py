@@ -151,17 +151,15 @@ def GenomeMaapping(Jun_reads,Jun_type,reads):
 	tmap.to_csv(OutName+"_"+Jun_type+".Tmap.tsv",header=None,index=None,sep="\t")
 
 def CombineMapping(Gmap,Tmap):
-	g=pd.read_table(Gmap,header=None,sep=" ")
+	g=pd.read_table(Gmap,header=None)
 	g=g.sort_values([0,2,3])
-	g=g[range(0,12)]
-	print(g[0:10])
-	t=pd.read_table(Tmap,header=None,sep=" ")
+	g=g[range(0,9)]
+	t=pd.read_table(Tmap,header=None)
 	t=t.loc[t[0].isin(g[0])]
 	t=t.sort_values([0,2,3])
-	t=t[range(0,12)]
-	print(t[0:10])
-	g_columns=["rName","rLen","rGenome_s","rGenome_e","strand","gName","gLen","genome_s","genome_e","genome_match","genome_align","genome_score"]
-	t_columns=["rName","rLen","rTE_s","rTE_e","strand","tName","tLen","t_s","t_e","te_match","te_align","te_score"]
+	t=t[range(0,9)]
+	g_columns=["rName","rLen","rGenome_s","rGenome_e","strand","gName","gLen","genome_s","genome_e"]
+	t_columns=["rName","rLen","rTE_s","rTE_e","strand","tName","tLen","t_s","t_e"]
 	g.columns=g_columns
 	t.columns=t_columns
 	combined=g.merge(t,on=["rName","rLen"],how="inner")
@@ -173,14 +171,11 @@ def CombineMapping(Gmap,Tmap):
 		max_=sub["rTE_e"].max()
 		combined.loc[combined["rName"]==r,"rTE_min"]=min_
 		combined.loc[combined["rName"]==r,"rTE_max"]=max_
-	print(combined[0:20])
-	print(combined.shape)
 	print(len(set(combined["rName"])))
 	combined1=combined.loc[(combined["rGenome_e"]<=combined["rTE_min"]+100) | (combined["rGenome_s"]>=combined["rTE_max"]-100)]
 	r2=set(combined1["rName"])
 	combined=combined.loc[combined["rName"].isin(r2)]
 	print(combined[0:20])
-	print(combined.shape)
 	print(len(set(combined["rName"])))
 	combined.to_csv(OutName+"_"+Jun_type+"_cirIns_filter1.tsv",index=None,sep="\t")
 
@@ -188,8 +183,6 @@ def CombineMapping(Gmap,Tmap):
 def GetInsertion(CombineFile):
 	f=pd.read_table(CombineFile)
 	a=f.loc[f["rName"]=="38144642-1e3e-4a72-b5ff-9705bdb76ec9"]
-	print(a)
-	#print(f.shape)
 	r=list(set(list(f["rName"])))
 	#print(len(r))
 	print(r)
