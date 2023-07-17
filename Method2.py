@@ -223,10 +223,8 @@ def GetInsertion(CombineFile):
 
 getChimeric_reads(TEmap)
 JunctionReads(OutName+"_MultiAlig.tsv")
-#GetMapping(OutName+"_MultiAlig.tsv")
-#JunctionReads(OutName+"_MultiAlig.tsv")
-#GetCirType(OutName+"_junction.tsv")
-#GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
-#CombineMapping(OutName+"_"+Jun_type+"Gmap.tsv",OutName+"_"+Jun_type+"Tmap.tsv")
-#GetInsertion(OutName+"_"+Jun_type+"_cirIns_filter1.tsv")
+GetCirType(OutName+"_junction.tsv")
+GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
+CombineMapping(OutName+"_"+Jun_type+"Gmap.tsv",OutName+"_"+Jun_type+"Tmap.tsv")
+GetInsertion(OutName+"_"+Jun_type+"_cirIns_filter1.tsv")
 
