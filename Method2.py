@@ -2,6 +2,7 @@ import pandas as pd
 import os
 from Bio import SeqIO
 import numpy as np
+import argparse
 
 
 pd.set_option("display.max_columns",40)
@@ -16,15 +17,19 @@ OutName=args.OutName
 
 def getChimeric_reads(infile):
 	f=pd.read_table(infile)
-	file_A=f[["Readname","ReadStart","ReadEnd"]]
-
-
-def GetMapping(MulAlig):
-	f=pd.read_table(MulAlig,header=None)
-	f=f.loc[f[""]	
-	f.to_csv(OutName+"_chemReads.tsv",header=None,index=None,sep="\t")
-	print(f[0:10])
-	print(f.shape)
+	f["0"]=0
+	file_A=f.drop_duplicates(["QName"],keep="first")[["QName","0","QLen"]]
+	file_B=f[["QName","QStart","QEnd"]]
+	file_A.to_csv(OutName+"_A.tsv",header=None,index=None,sep="\t")
+	file_B.to_csv(OutName+"_B.tsv",header=None,index=None,sep="\t")
+	bedtools="bedtools coverage -a %s -b %s> %s"%(OutName+"_A.tsv",OutName+"_B.tsv",OutName+"_cov.tsv")
+	os.system(bedtools)
+	cov=pd.read_table(OutName+"_cov.tsv",header=None)
+	cov=cov.loc[cov[6]<=0.9]
+	f=f.loc[f["QName"].isin(list(cov[0]))]
+	f.to_csv(OutName+"_MultiAlig.tsv",index=None,sep="\t")
+	rm="rm %s %s %s"%(OutName+"_A.tsv",OutName+"_B.tsv",OutName+"_cov.tsv")
+	os.system(rm)
 
 
 def Junction(list1,list2):
@@ -76,14 +81,10 @@ def JunCoor(list1,list2):
 
 def JunctionReads(mutiAlig):
 	f=pd.read_table(mutiAlig,header=None)
-	f["info"]=f[0]+"_"+f[5]
+	f["info"]=f["QName"]+"_"+f["RName"]
 	print(f[0:10])
 	print(f.shape)
-	print(len(set(f[0])))
-	f["info"]=f[0]+"_"+f[5]
-#	f[12]=f[1]-f[11]
-#	f=f.loc[f[12]>=100]
-	f=f.sort_values([0,2,3])
+	f=f.sort_values(["QName","QStart","QEnd"])
 	d={}
 	for r in set(f["info"]):
 		d[r]="NC"
@@ -220,11 +221,11 @@ def GetInsertion(CombineFile):
 	print(f)
 	print(len(set(f["rName"])))
 
-FilterPaf(OutName+".fastq_TE.paf")
-GetMapping(OutName+"_MultiAlig.tsv")
-JunctionReads(OutName+"_MultiAlig.tsv")
-GetCirType(OutName+"_junction.tsv")
-GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
-CombineMapping(OutName+"_"+Jun_type+"Gmap.tsv",OutName+"_"+Jun_type+"Tmap.tsv")
-GetInsertion(OutName+"_"+Jun_type+"_cirIns_filter1.tsv")
-
+getChimeric_reads(TEmap)
+#GetMapping(OutName+"_MultiAlig.tsv")
+#JunctionReads(OutName+"_MultiAlig.tsv")
+#GetCirType(OutName+"_junction.tsv")
+#GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
+#CombineMapping(OutName+"_"+Jun_type+"Gmap.tsv",OutName+"_"+Jun_type+"Tmap.tsv")
+#GetInsertion(OutName+"_"+Jun_type+"_cirIns_filter1.tsv")
+#
