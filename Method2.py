@@ -111,18 +111,18 @@ def JunctionReads(mutiAlig):
 	return f
 	
 
-def circleType(x,TElength):
+def circleType(x):
     cirCle_S=int(x.split("_")[0])
     cirCle_E=int(x.split("_")[1])
     cirCle_D=int(x.split("_")[2])
     TElength=int(x.split("_")[3])
-    if cirCle_S <100 and cirCle_E>TElengt-100 and cirCle_D<-100:
+    if cirCle_S <100 and cirCle_E>TElength-100 and cirCle_D<-100:
         return "1LTR_FL"
-    elif cirCle_S <100 and cirCle_E>TElengt-100 and cirCle_D>-100:
+    elif cirCle_S <100 and cirCle_E>TElength-100 and cirCle_D>-100:
         return "2LTR_FL"
     elif cirCle_S <100:
         return "1LTR5_Frg"
-    elif cirCle_E > TElengt-100:
+    elif cirCle_E > TElength-100:
         return "1LTR3_Frg"
     else:
         return "nonLTR_Frg"
@@ -140,7 +140,9 @@ def GenomeMaapping(Jun_reads,Jun_type,reads):
 	s=set(f[0])
 	gmap=pd.read_table("%s.fastq_genome.paf"%(OutName),header=None)
 	gmap=gmap.loc[gmap[0].isin(list(f[0]))]
+	print(gmap[0:10])
 	gmap=gmap.loc[gmap[5].isin(Chromosome)]
+	print(gmap[0:10])
 	gmap.to_csv(OutName+"_"+Jun_type+".Gmap.tsv",header=None,index=None,sep="\t")
 	tmap=pd.read_table("%s.fastq_TE.paf"%(OutName),header=None,sep="\t")
 	tmap=tmap.loc[tmap[0].isin(list(f[0]))]
@@ -209,10 +211,10 @@ def GetInsertion(CombineFile):
 	print(f)
 	print(len(set(f["rName"])))
 
-#getChimeric_reads(TEmap)
-#JunctionReads(OutName+"_MultiAlig.tsv")
-#GetCirType(OutName+"_junction.tsv")
-#GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
+getChimeric_reads(TEmap)
+JunctionReads(OutName+"_MultiAlig.tsv")
+GetCirType(OutName+"_junction.tsv")
+GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
 CombineMapping(OutName+"_"+Jun_type+".Gmap.tsv",OutName+"_"+Jun_type+".Tmap.tsv")
 #GetInsertion(OutName+"_"+Jun_type+"_cirIns_filter1.tsv")
 
