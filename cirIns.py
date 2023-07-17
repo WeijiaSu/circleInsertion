@@ -13,14 +13,6 @@ args=parser.parse_args()
 TEmap=args.TEpaf
 OutName=args.OutName
 
-def FilterPaf(paf):
-	f=pd.read_table(paf,header=None,sep=" ")
-	linAli=f.groupby([0]).filter(lambda x: len(x)==1)
-	f=f.loc[~f[0].isin(linAli[0])]
-	f.to_csv(OutName+"_MultiAlig.tsv",header=None,index=None,sep="\t")
-
-#FilterPaf(TEmap)
-
 
 def merge(Multi_paf):
 	f=pd.read_table(Multi_paf,header=None)

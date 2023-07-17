@@ -3,21 +3,25 @@ import os
 from Bio import SeqIO
 import numpy as np
 
-pd.set_option("display.max_columns",40)
 
-#TE="/data/zhanglab/Weijia_Su/CommonDataSet/TE_full/HMS-Beagle.fasta"
-TE="/data/zhanglab/Weijia_Su/CommonDataSet/TE_full.fa"
-#TE="/data/zhanglab/Weijia_Su/CommonDataSet/HMS-Beagle_GPF.fa"
-Genome="/data/zhanglab/Weijia_Su/Genomes/Dro/DM6/dm6_RM_1004/dm6.fa.masked"
-#OutName="171107_GFP"
-OutName="barcode05"
-reads="/data/zhanglab/Weijia_Su/eccDNA/230619_fly_F2egg_Lig4Aub_gDNA_Tn5/barcode01.fastq.pre.fastq"
-Jun_type="1LTR_FL"
+pd.set_option("display.max_columns",40)
+parser=argparse.ArgumentParser()
+parser.add_argument("-TEmap","--TEpaf")
+parser.add_argument("-OutName","--OutName")
+args=parser.parse_args()
+
+TEmap=args.TEpaf
+OutName=args.OutName
+
+
+def getChimeric_reads(infile):
+	f=pd.read_table(infile)
+	file_A=f[["Readname","ReadStart","ReadEnd"]]
 
 
 def GetMapping(MulAlig):
 	f=pd.read_table(MulAlig,header=None)
-	f=f.loc[f[""]]	
+	f=f.loc[f[""]	
 	f.to_csv(OutName+"_chemReads.tsv",header=None,index=None,sep="\t")
 	print(f[0:10])
 	print(f.shape)
