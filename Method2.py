@@ -13,7 +13,7 @@ args=parser.parse_args()
 
 TEmap=args.TEpaf
 OutName=args.OutName
-
+Jun_type="1LTR_FL"
 
 def getChimeric_reads(infile):
 	f=pd.read_table(infile)
@@ -128,8 +128,8 @@ def circleType(x,TElength):
 
 def GetCirType(Junction_reads):
 	f=pd.read_table(Junction_reads,header=None)
-	f=f.loc[f[14]!="NC"]
-	f["Type"]=f[14].apply(lambda x:circleType(x,TElengt))
+	f=f.loc[f[11]!="NC"]
+	f["Type"]=f[11].apply(lambda x:circleType(x,TElengt))
 	f.to_csv(OutName+"_Type.tsv",index=None,header=None,sep="\t")
 
 def GenomeMaapping(Jun_reads,Jun_type,reads):
@@ -221,8 +221,8 @@ def GetInsertion(CombineFile):
 	print(f)
 	print(len(set(f["rName"])))
 
-getChimeric_reads(TEmap)
-JunctionReads(OutName+"_MultiAlig.tsv")
+#getChimeric_reads(TEmap)
+#JunctionReads(OutName+"_MultiAlig.tsv")
 GetCirType(OutName+"_junction.tsv")
 GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
 CombineMapping(OutName+"_"+Jun_type+"Gmap.tsv",OutName+"_"+Jun_type+"Tmap.tsv")
