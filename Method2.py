@@ -80,7 +80,7 @@ def JunCoor(list1,list2):
 		return str(t_min)+"_"+str(t_max)+"_"+str(Overlap)
 
 def JunctionReads(mutiAlig):
-	f=pd.read_table(mutiAlig,header=None)
+	f=pd.read_table(mutiAlig)
 	f["info"]=f["QName"]+"_"+f["RName"]
 	print(f[0:10])
 	print(f.shape)
@@ -89,7 +89,7 @@ def JunctionReads(mutiAlig):
 	for r in set(f["info"]):
 		d[r]="NC"
 		sub=f.loc[f["info"]==r]
-		l=list(zip(sub[2],sub[3],sub[7],sub[8],sub[4],sub[6],sub[1]))
+		l=list(zip(sub["QStart"],sub["QEnd"],sub["RStart"],sub["REnd"],sub["Strand"],sub["RLen"],sub["QLen"]))
 		i=0
 		while i<len(l)-1:
 			list1=l[i]
@@ -222,10 +222,11 @@ def GetInsertion(CombineFile):
 	print(len(set(f["rName"])))
 
 getChimeric_reads(TEmap)
+JunctionReads(OutName+"_MultiAlig.tsv")
 #GetMapping(OutName+"_MultiAlig.tsv")
 #JunctionReads(OutName+"_MultiAlig.tsv")
 #GetCirType(OutName+"_junction.tsv")
 #GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
 #CombineMapping(OutName+"_"+Jun_type+"Gmap.tsv",OutName+"_"+Jun_type+"Tmap.tsv")
 #GetInsertion(OutName+"_"+Jun_type+"_cirIns_filter1.tsv")
-#
+
