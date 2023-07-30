@@ -3,6 +3,7 @@ import os
 from Bio import SeqIO
 import numpy as np
 import argparse
+from bamToPaf import bamConverter
 
 
 pd.set_option("display.max_columns",40)
@@ -13,9 +14,11 @@ args=parser.parse_args()
 
 TEmap=args.TEpaf
 OutName=args.OutName
-Jun_type="1LTR_FL"
-reads="/data/zhanglab/Weijia_Su/eccDNA/230619_fly_F2egg_Lig4Aub_gDNA_Tn5/%s.fastq.pre.fastq"%(OutName)
+#Jun_type="1LTR_FL"
+#reads="/data/zhanglab/Weijia_Su/eccDNA/230619_fly_F2egg_Lig4Aub_gDNA_Tn5/%s.fastq.pre.fastq"%(OutName)
 
+def convertToPaf(bamfile,name):
+	bamConverter().ConverAlignment(bamfile,name)
 
 Chromosome=["chr2L","chr2R","chr3L","chr3R","chr4","chrX","chrY"]
 def getChimeric_reads(infile):
@@ -117,15 +120,15 @@ def circleType(x):
     cirCle_D=int(x.split("_")[2])
     TElength=int(x.split("_")[3])
     if cirCle_S <100 and cirCle_E>TElength-100 and cirCle_D<-100:
-        return "1LTR_FL"
+        return "1End_FL"
     elif cirCle_S <100 and cirCle_E>TElength-100 and cirCle_D>-100:
-        return "2LTR_FL"
+        return "2Ends_FL"
     elif cirCle_S <100:
-        return "1LTR5_Frg"
+        return "1End5_Frg"
     elif cirCle_E > TElength-100:
-        return "1LTR3_Frg"
+        return "1End3_Frg"
     else:
-        return "nonLTR_Frg"
+        return "noEnd_Frg"
 
 def GetCirType(Junction_reads):
 	f=pd.read_table(Junction_reads,header=None)
@@ -211,10 +214,12 @@ def GetInsertion(CombineFile):
 	print(f)
 	print(len(set(f["rName"])))
 
-getChimeric_reads(TEmap)
-JunctionReads(OutName+"_MultiAlig.tsv")
+
+#convertToPaf(TEmap,OutName+"_TE")
+#getChimeric_reads(OutName+"_TE.paf")
+#JunctionReads(OutName+"_MultiAlig.tsv")
 GetCirType(OutName+"_junction.tsv")
-GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
-CombineMapping(OutName+"_"+Jun_type+".Gmap.tsv",OutName+"_"+Jun_type+".Tmap.tsv")
+#GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
+#CombineMapping(OutName+"_"+Jun_type+".Gmap.tsv",OutName+"_"+Jun_type+".Tmap.tsv")
 #GetInsertion(OutName+"_"+Jun_type+"_cirIns_filter1.tsv")
 
