@@ -7,29 +7,35 @@ import argparse
 
 pd.set_option("display.max_columns",40)
 parser=argparse.ArgumentParser()
-parser.add_argument("-TEmap","--TEpaf")
+parser.add_argument("-TEmap","--TEbam")
 parser.add_argument("-OutName","--OutName")
 args=parser.parse_args()
 
-TEmap=args.TEpaf
+TEmap=args.TEbam
 OutName=args.OutName
-Jun_type="1LTR_FL"
+#Jun_type="2LTR_FL"
 reads="/data/zhanglab/Weijia_Su/eccDNA/230619_fly_F2egg_Lig4Aub_gDNA_Tn5/%s.fastq.pre.fastq"%(OutName)
 
+bam_name=TEmap.split("/")[-1]
 
-Chromosome=["chr2L","chr2R","chr3L","chr3R","chr4","chrX","chrY"]
+if bam_name+"_AligTable.tsv" not in os.listdir("./"):
+	from bamConverter import bamConverter
+	bamConverter().ConverAlignment(TEmap)
+
+Chromosome=["chr2L","chr2R","chr3L","chr3R","chr4","chrX","chrY","chrM"]
 def getChimeric_reads(infile):
 	f=pd.read_table(infile)
 	f["0"]=0
-	file_A=f.drop_duplicates(["QName"],keep="first")[["QName","0","QLen"]]
-	file_B=f[["QName","QStart","QEnd"]]
+	file_A=f.drop_duplicates(["Readname"],keep="first")[["Readname","0","ReadLen"]]
+	file_B=f[["Readname","ReadStart","ReadStart"]]
 	file_A.to_csv(OutName+"_A.tsv",header=None,index=None,sep="\t")
 	file_B.to_csv(OutName+"_B.tsv",header=None,index=None,sep="\t")
 	bedtools="bedtools coverage -a %s -b %s> %s"%(OutName+"_A.tsv",OutName+"_B.tsv",OutName+"_cov.tsv")
 	os.system(bedtools)
 	cov=pd.read_table(OutName+"_cov.tsv",header=None)
-	cov=cov.loc[cov[6]<=0.9]
-	f=f.loc[f["QName"].isin(list(cov[0]))]
+	cov[7]=cov[5]*(1-cov[6])
+	cov=cov.loc[(cov[6]<=0.9) | (cov[7]>=500)]
+	f=f.loc[f["Readname"].isin(list(cov[0]))]
 	f.to_csv(OutName+"_MultiAlig.tsv",index=None,sep="\t")
 	rm="rm %s %s %s"%(OutName+"_A.tsv",OutName+"_B.tsv",OutName+"_cov.tsv")
 	os.system(rm)
@@ -132,6 +138,7 @@ def GetCirType(Junction_reads):
 	f=f.loc[f[11]!="NC"]
 	f[12]=f[11]+"_"+f[6].apply(str)
 	f["Type"]=f[12].apply(lambda x:circleType(x))
+	f=f.drop([12],axis=1)
 	f.to_csv(OutName+"_Type.tsv",index=None,header=None,sep="\t")
 
 def GenomeMaapping(Jun_reads,Jun_type,reads):
@@ -139,10 +146,8 @@ def GenomeMaapping(Jun_reads,Jun_type,reads):
 	f=f.loc[f[12]==Jun_type]
 	s=set(f[0])
 	gmap=pd.read_table("%s.fastq_genome.paf"%(OutName),header=None)
-	gmap=gmap.loc[gmap[0].isin(list(f[0]))]
-	print(gmap[0:10])
+	gmap=gmap.loc[gmap[0].isin(s)]
 	gmap=gmap.loc[gmap[5].isin(Chromosome)]
-	print(gmap[0:10])
 	gmap.to_csv(OutName+"_"+Jun_type+".Gmap.tsv",header=None,index=None,sep="\t")
 	tmap=pd.read_table("%s.fastq_TE.paf"%(OutName),header=None,sep="\t")
 	tmap=tmap.loc[tmap[0].isin(list(f[0]))]
@@ -172,49 +177,47 @@ def CombineMapping(Gmap,Tmap):
 	combined1=combined.loc[(combined["rGenome_e"]<=combined["rTE_min"]+100) | (combined["rGenome_s"]>=combined["rTE_max"]-100)]
 	r2=set(combined1["rName"])
 	combined=combined.loc[combined["rName"].isin(r2)]
-	print(len(set(combined["rName"])))
+	#print(len(set(combined["rName"])))
 	combined.to_csv(OutName+"_"+Jun_type+"_cirIns_filter1.tsv",index=None,sep="\t")
 
 
 def GetInsertion(CombineFile):
 	f=pd.read_table(CombineFile)
-	a=f.loc[f["rName"]=="38144642-1e3e-4a72-b5ff-9705bdb76ec9"]
-	r=list(set(list(f["rName"])))
-	#print(len(r))
-	print(r)
-	f=f.loc[f["tName"]!="HMS-Beagle"]
-	fm=f.loc[f["gName"]=="chrM"]
-	r=list(set(list(fm["rName"])))
-	print(len(r))
-	for read in r[20:]:
-		print(r.index(read))
-		sub=f.loc[f["rName"]==read]
-		print("##################################")
-		print(sub)
-		print("")
-	f["rGen_min"]=0
-	f["rGen_max"]=0
-	for r in set(f["rName"]):
-		sub=f.loc[f["rName"]==r]
-		min_=sub["rGenome_s"].min()
-		max_=sub["rGenome_e"].max()
-		f.loc[f["rName"]==r,"rGen_min"]=min_
-		f.loc[f["rName"]==r,"rGen_max"]=max_
-	f=f.loc[(f["rGen_min"]<f["rTE_min"]) & (f["rGen_max"]>f["rTE_max"])]
-
-	f["d1"]=f["rGenome_e"]-f["rTE_min"]
-	f["d2"]=f["rGenome_s"]-f["rTE_max"]
-	f["d1"]=f["d1"].apply(lambda x: abs(x))
-	f["d2"]=f["d2"].apply(lambda x: abs(x))
-	f=f.loc[(f["d1"]<=500) | (f["d2"]<=500)]
-	print(f.shape)
-	print(f)
+	f=f.loc[f["tName"]=="blood"]
+	print(f[0:50])
 	print(len(set(f["rName"])))
-
-getChimeric_reads(TEmap)
-JunctionReads(OutName+"_MultiAlig.tsv")
-GetCirType(OutName+"_junction.tsv")
-GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
-CombineMapping(OutName+"_"+Jun_type+".Gmap.tsv",OutName+"_"+Jun_type+".Tmap.tsv")
+#	fm=f.loc[f["gName"]=="chrM"]
+#	r=list(set(list(fm["rName"])))
+#	print(len(r))
+#	for read in r[20:]:
+#		print(r.index(read))
+#		sub=f.loc[f["rName"]==read]
+#		print("##################################")
+#		print(sub)
+#		print("")
+#	f["rGen_min"]=0
+#	f["rGen_max"]=0
+#	for r in set(f["rName"]):
+#		sub=f.loc[f["rName"]==r]
+#		min_=sub["rGenome_s"].min()
+#		max_=sub["rGenome_e"].max()
+#		f.loc[f["rName"]==r,"rGen_min"]=min_
+#		f.loc[f["rName"]==r,"rGen_max"]=max_
+#	f=f.loc[(f["rGen_min"]<f["rTE_min"]) & (f["rGen_max"]>f["rTE_max"])]
+#
+#	f["d1"]=f["rGenome_e"]-f["rTE_min"]
+#	f["d2"]=f["rGenome_s"]-f["rTE_max"]
+#	f["d1"]=f["d1"].apply(lambda x: abs(x))
+#	f["d2"]=f["d2"].apply(lambda x: abs(x))
+#	f=f.loc[(f["d1"]<=500) | (f["d2"]<=500)]
+#	print(f.shape)
+#	print(f)
+#	print(len(set(f["rName"])))
+#
+getChimeric_reads(bam_name+"_AligTable.tsv")
+#JunctionReads(OutName+"_MultiAlig.tsv")
+#GetCirType(OutName+"_junction.tsv")
+#GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
+#CombineMapping(OutName+"_"+Jun_type+".Gmap.tsv",OutName+"_"+Jun_type+".Tmap.tsv")
 #GetInsertion(OutName+"_"+Jun_type+"_cirIns_filter1.tsv")
 
