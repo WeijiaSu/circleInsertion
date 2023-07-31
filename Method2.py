@@ -139,31 +139,35 @@ def GetCirType(Junction_reads):
 	f["Type"]=f[12].apply(lambda x:circleType(x))
 	f.to_csv(OutName+"_Type.tsv",index=None,header=None,sep="\t")
 
-def GenomeMaapping(Jun_reads,reads):
+def GenomeMaapping(Jun_reads):
 	f=pd.read_table(Jun_reads,header=None)
-	s=set(f[0])
+	t=f.drop([9,10,11,12],axis=1)
 	g=pd.read_table("%s_genome.paf"%(OutName))
-	g=g.loc[gmap[0].isin(list(f[0]))]
-	g=g.loc[gmap[5].isin(Chromosome)]
-	
+	g=g.loc[g["QName"].isin(list(f[0]))]
+	g=g.loc[g["RName"].isin(Chromosome)]
+
 	g_columns=["rName","rLen","rGenome_s","rGenome_e","strand","gName","gLen","genome_s","genome_e"]
-	t_columns=["rName","rLen","rTE_s","rTE_e","strand","tName","tLen","t_s","t_e"]
+	t_columns=["rName","rLen","rTE_s","rTE_e","strand","tName","tLen","t_s","t_e","circle"]
 	g.columns=g_columns
 	t.columns=t_columns
 	combined=g.merge(t,on=["rName","rLen"],how="inner")
 	combined["rTE_min"]=0
 	combined["rTE_max"]=0
-	for r in set(combined["rName"]):
-		sub=combined.loc[combined["rName"]==r]
-		min_=sub["rTE_s"].min()
-		max_=sub["rTE_e"].max()
-		combined.loc[combined["rName"]==r,"rTE_min"]=min_
-		combined.loc[combined["rName"]==r,"rTE_max"]=max_
-	combined1=combined.loc[(combined["rGenome_e"]<=combined["rTE_min"]+100) | (combined["rGenome_s"]>=combined["rTE_max"]-100)]
-	r2=set(combined1["rName"])
-	combined=combined.loc[combined["rName"].isin(r2)]
-	print(len(set(combined["rName"])))
-	combined.to_csv(OutName+"_"+Jun_type+"_cirIns_filter1.tsv",index=None,sep="\t")
+	print(t.shape)
+	print(g.shape)
+	print(combined.shape)
+	print(combined[0:10])
+#	for r in set(combined["rName"]):
+#		sub=combined.loc[combined["rName"]==r]
+#		min_=sub["rTE_s"].min()
+#		max_=sub["rTE_e"].max()
+#		combined.loc[combined["rName"]==r,"rTE_min"]=min_
+#		combined.loc[combined["rName"]==r,"rTE_max"]=max_
+#	combined1=combined.loc[(combined["rGenome_e"]<=combined["rTE_min"]+100) | (combined["rGenome_s"]>=combined["rTE_max"]-100)]
+#	r2=set(combined1["rName"])
+#	combined=combined.loc[combined["rName"].isin(r2)]
+#	print(len(set(combined["rName"])))
+#	combined.to_csv(OutName+"_"+Jun_type+"_cirIns_filter1.tsv",index=None,sep="\t")
 
 
 def GetInsertion(CombineFile):
@@ -207,7 +211,7 @@ def GetInsertion(CombineFile):
 #getChimeric_reads(OutName+"_TE.paf")
 #JunctionReads(OutName+"_MultiAlig.tsv")
 #GetCirType(OutName+"_junction.tsv")
-GenomeMaapping(OutName+"_Type.tsv",reads)
+GenomeMaapping(OutName+"_Type.tsv")
 #CombineMapping(OutName+"_"+Jun_type+".Gmap.tsv",OutName+"_"+Jun_type+".Tmap.tsv")
 #GetInsertion(OutName+"_"+Jun_type+"_cirIns_filter1.tsv")
 
