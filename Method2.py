@@ -9,12 +9,14 @@ from bamToPaf import bamConverter
 pd.set_option("display.max_columns",40)
 parser=argparse.ArgumentParser()
 parser.add_argument("-TEmap","--TEpaf")
+parser.add_argument("-Gmap","--GenoMape")
 parser.add_argument("-OutName","--OutName")
 parser.add_argument("-reads","--reads")
 args=parser.parse_args()
 
 TEmap=args.TEpaf
 OutName=args.OutName
+Gmap=args.GenoMape
 reads=args.reads
 
 def convertToPaf(bamfile,name):
@@ -140,28 +142,10 @@ def GetCirType(Junction_reads):
 def GenomeMaapping(Jun_reads,reads):
 	f=pd.read_table(Jun_reads,header=None)
 	s=set(f[0])
-	readName=f[[0]].drop_duplicates([0],keep="first")
-	readName.to_csv(OutName+"_CircleReadname.tsv",header=None,sep='\t',index=False)
-	seqtk="seqtk subseq -t %s %s >%s"%(reads,OutName+"_CircleReadname.tsv",OutName+"_circleReads.fastq")
-	os.system(seqtk)
-	#gmap=pd.read_table("%s.fastq_genome.paf"%(OutName),header=None)
-	#gmap=gmap.loc[gmap[0].isin(list(f[0]))]
-	#print(gmap[0:10])
-	#gmap=gmap.loc[gmap[5].isin(Chromosome)]
-	#print(gmap[0:10])
-	#gmap.to_csv(OutName+"_"+Jun_type+".Gmap.tsv",header=None,index=None,sep="\t")
-	#tmap=pd.read_table("%s.fastq_TE.paf"%(OutName),header=None,sep="\t")
-	#tmap=tmap.loc[tmap[0].isin(list(f[0]))]
-	#tmap.to_csv(OutName+"_"+Jun_type+".Tmap.tsv",header=None,index=None,sep="\t")
-
-def CombineMapping(Gmap,Tmap):
-	g=pd.read_table(Gmap,header=None)
-	g=g.sort_values([0,2,3])
-	g=g[range(0,9)]
-	t=pd.read_table(Tmap,header=None)
-	t=t.loc[t[0].isin(g[0])]
-	t=t.sort_values([0,2,3])
-	t=t[range(0,9)]
+	g=pd.read_table("%s_genome.paf"%(OutName))
+	g=g.loc[gmap[0].isin(list(f[0]))]
+	g=g.loc[gmap[5].isin(Chromosome)]
+	
 	g_columns=["rName","rLen","rGenome_s","rGenome_e","strand","gName","gLen","genome_s","genome_e"]
 	t_columns=["rName","rLen","rTE_s","rTE_e","strand","tName","tLen","t_s","t_e"]
 	g.columns=g_columns
@@ -219,6 +203,7 @@ def GetInsertion(CombineFile):
 
 
 #convertToPaf(TEmap,OutName+"_TE")
+#convertToPaf(Gmap,OutName+"_genome")
 #getChimeric_reads(OutName+"_TE.paf")
 #JunctionReads(OutName+"_MultiAlig.tsv")
 #GetCirType(OutName+"_junction.tsv")
