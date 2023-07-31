@@ -153,45 +153,40 @@ def GenomeMaapping(Jun_reads):
 	combined=g.merge(t,on=["rName","rLen"],how="inner")
 	combined["rTE_min"]=0
 	combined["rTE_max"]=0
-	print(combined.shape)
-	print(combined[0:10])
 	for r in set(combined["rName"]):
 		sub=combined.loc[combined["rName"]==r]
 		min_=sub["rTE_s"].min()
 		max_=sub["rTE_e"].max()
 		combined.loc[combined["rName"]==r,"rTE_min"]=min_
 		combined.loc[combined["rName"]==r,"rTE_max"]=max_
-	combined1=combined.loc[(combined["rGenome_e"]<=combined["rTE_min"]+100) | (combined["rGenome_s"]>=combined["rTE_max"]-100)]
-	r2=set(combined1["rName"])
-	combined=combined.loc[combined["rName"].isin(r2)]
-	print(combined.shape)
-	print(combined[0:10])
+	combined=combined.loc[(combined["rGenome_e"]<=combined["rTE_min"]+100) | (combined["rGenome_s"]>=combined["rTE_max"]-100)]
+	#r2=set(combined1["rName"])
+	#combined=combined.loc[combined["rName"].isin(r2)]
 	combined.to_csv(OutName+"_cirIns_filter1.tsv",index=None,sep="\t")
 
 
 def GetInsertion(CombineFile):
 	f=pd.read_table(CombineFile)
-	print(r)
-	f=f.loc[f["tName"]!="HMS-Beagle"]
+	f=f.loc[f["tName"]=="HMS-Beagle"]
 	#fm=f.loc[f["gName"]=="chrM"]
-	r=list(set(list(fm["rName"])))
-	print(len(r))
-	for read in r[20:]:
-		print(r.index(read))
-		sub=f.loc[f["rName"]==read]
-		print("##################################")
-		print(sub)
-		print("")
-	f["rGen_min"]=0
-	f["rGen_max"]=0
-	for r in set(f["rName"]):
-		sub=f.loc[f["rName"]==r]
-		min_=sub["rGenome_s"].min()
-		max_=sub["rGenome_e"].max()
-		f.loc[f["rName"]==r,"rGen_min"]=min_
-		f.loc[f["rName"]==r,"rGen_max"]=max_
-	f=f.loc[(f["rGen_min"]<f["rTE_min"]) & (f["rGen_max"]>f["rTE_max"])]
-
+	#r=list(set(list(fm["rName"])))
+	#print(len(r))
+#	for read in r[20:]:
+#		print(r.index(read))
+#		sub=f.loc[f["rName"]==read]
+#		print("##################################")
+#		print(sub)
+#		print("")
+#	f["rGen_min"]=0
+#	f["rGen_max"]=0
+#	for r in set(f["rName"]):
+#		sub=f.loc[f["rName"]==r]
+#		min_=sub["rGenome_s"].min()
+#		max_=sub["rGenome_e"].max()
+#		f.loc[f["rName"]==r,"rGen_min"]=min_
+#		f.loc[f["rName"]==r,"rGen_max"]=max_
+#	f=f.loc[(f["rGen_min"]<f["rTE_min"]) & (f["rGen_max"]>f["rTE_max"])]
+#
 	f["d1"]=f["rGenome_e"]-f["rTE_min"]
 	f["d2"]=f["rGenome_s"]-f["rTE_max"]
 	f["d1"]=f["d1"].apply(lambda x: abs(x))
@@ -202,11 +197,11 @@ def GetInsertion(CombineFile):
 	print(len(set(f["rName"])))
 
 
-#convertToPaf(TEmap,OutName+"_TE")
-#convertToPaf(Gmap,OutName+"_genome")
-#getChimeric_reads(OutName+"_TE.paf")
-#JunctionReads(OutName+"_MultiAlig.tsv")
-#GetCirType(OutName+"_junction.tsv")
-#GenomeMaapping(OutName+"_Type.tsv")
-GetInsertion(OutName+"_"+Jun_type+"_cirIns_filter1.tsv")
+convertToPaf(TEmap,OutName+"_TE")
+convertToPaf(Gmap,OutName+"_genome")
+getChimeric_reads(OutName+"_TE.paf")
+JunctionReads(OutName+"_MultiAlig.tsv")
+GetCirType(OutName+"_junction.tsv")
+GenomeMaapping(OutName+"_Type.tsv")
+GetInsertion(OutName+"_cirIns_filter1.tsv")
 
