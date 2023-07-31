@@ -10,12 +10,12 @@ pd.set_option("display.max_columns",40)
 parser=argparse.ArgumentParser()
 parser.add_argument("-TEmap","--TEpaf")
 parser.add_argument("-OutName","--OutName")
+parser.add_argument("-reads","--reads")
 args=parser.parse_args()
 
 TEmap=args.TEpaf
 OutName=args.OutName
-#Jun_type="1LTR_FL"
-#reads="/data/zhanglab/Weijia_Su/eccDNA/230619_fly_F2egg_Lig4Aub_gDNA_Tn5/%s.fastq.pre.fastq"%(OutName)
+reads=args.reads
 
 def convertToPaf(bamfile,name):
 	bamConverter().ConverAlignment(bamfile,name)
@@ -137,19 +137,22 @@ def GetCirType(Junction_reads):
 	f["Type"]=f[12].apply(lambda x:circleType(x))
 	f.to_csv(OutName+"_Type.tsv",index=None,header=None,sep="\t")
 
-def GenomeMaapping(Jun_reads,Jun_type,reads):
+def GenomeMaapping(Jun_reads,reads):
 	f=pd.read_table(Jun_reads,header=None)
-	f=f.loc[f[12]==Jun_type]
 	s=set(f[0])
-	gmap=pd.read_table("%s.fastq_genome.paf"%(OutName),header=None)
-	gmap=gmap.loc[gmap[0].isin(list(f[0]))]
-	print(gmap[0:10])
-	gmap=gmap.loc[gmap[5].isin(Chromosome)]
-	print(gmap[0:10])
-	gmap.to_csv(OutName+"_"+Jun_type+".Gmap.tsv",header=None,index=None,sep="\t")
-	tmap=pd.read_table("%s.fastq_TE.paf"%(OutName),header=None,sep="\t")
-	tmap=tmap.loc[tmap[0].isin(list(f[0]))]
-	tmap.to_csv(OutName+"_"+Jun_type+".Tmap.tsv",header=None,index=None,sep="\t")
+	readName=f[[0]].drop_duplicates([0],keep="first")
+	readName.to_csv(OutName+"_CircleReadname.tsv",header=None,sep='\t',index=False)
+	seqtk="seqtk subseq -t %s %s >%s"%(reads,OutName+"_CircleReadname.tsv",OutName+"_circleReads.fastq")
+	os.system(seqtk)
+	#gmap=pd.read_table("%s.fastq_genome.paf"%(OutName),header=None)
+	#gmap=gmap.loc[gmap[0].isin(list(f[0]))]
+	#print(gmap[0:10])
+	#gmap=gmap.loc[gmap[5].isin(Chromosome)]
+	#print(gmap[0:10])
+	#gmap.to_csv(OutName+"_"+Jun_type+".Gmap.tsv",header=None,index=None,sep="\t")
+	#tmap=pd.read_table("%s.fastq_TE.paf"%(OutName),header=None,sep="\t")
+	#tmap=tmap.loc[tmap[0].isin(list(f[0]))]
+	#tmap.to_csv(OutName+"_"+Jun_type+".Tmap.tsv",header=None,index=None,sep="\t")
 
 def CombineMapping(Gmap,Tmap):
 	g=pd.read_table(Gmap,header=None)
@@ -218,8 +221,8 @@ def GetInsertion(CombineFile):
 #convertToPaf(TEmap,OutName+"_TE")
 #getChimeric_reads(OutName+"_TE.paf")
 #JunctionReads(OutName+"_MultiAlig.tsv")
-GetCirType(OutName+"_junction.tsv")
-#GenomeMaapping(OutName+"_Type.tsv",Jun_type,reads)
+#GetCirType(OutName+"_junction.tsv")
+GenomeMaapping(OutName+"_Type.tsv",reads)
 #CombineMapping(OutName+"_"+Jun_type+".Gmap.tsv",OutName+"_"+Jun_type+".Tmap.tsv")
 #GetInsertion(OutName+"_"+Jun_type+"_cirIns_filter1.tsv")
 
