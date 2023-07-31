@@ -153,31 +153,27 @@ def GenomeMaapping(Jun_reads):
 	combined=g.merge(t,on=["rName","rLen"],how="inner")
 	combined["rTE_min"]=0
 	combined["rTE_max"]=0
-	print(t.shape)
-	print(g.shape)
 	print(combined.shape)
 	print(combined[0:10])
-#	for r in set(combined["rName"]):
-#		sub=combined.loc[combined["rName"]==r]
-#		min_=sub["rTE_s"].min()
-#		max_=sub["rTE_e"].max()
-#		combined.loc[combined["rName"]==r,"rTE_min"]=min_
-#		combined.loc[combined["rName"]==r,"rTE_max"]=max_
-#	combined1=combined.loc[(combined["rGenome_e"]<=combined["rTE_min"]+100) | (combined["rGenome_s"]>=combined["rTE_max"]-100)]
-#	r2=set(combined1["rName"])
-#	combined=combined.loc[combined["rName"].isin(r2)]
-#	print(len(set(combined["rName"])))
-#	combined.to_csv(OutName+"_"+Jun_type+"_cirIns_filter1.tsv",index=None,sep="\t")
+	for r in set(combined["rName"]):
+		sub=combined.loc[combined["rName"]==r]
+		min_=sub["rTE_s"].min()
+		max_=sub["rTE_e"].max()
+		combined.loc[combined["rName"]==r,"rTE_min"]=min_
+		combined.loc[combined["rName"]==r,"rTE_max"]=max_
+	combined1=combined.loc[(combined["rGenome_e"]<=combined["rTE_min"]+100) | (combined["rGenome_s"]>=combined["rTE_max"]-100)]
+	r2=set(combined1["rName"])
+	combined=combined.loc[combined["rName"].isin(r2)]
+	print(combined.shape)
+	print(combined[0:10])
+	combined.to_csv(OutName+"_cirIns_filter1.tsv",index=None,sep="\t")
 
 
 def GetInsertion(CombineFile):
 	f=pd.read_table(CombineFile)
-	a=f.loc[f["rName"]=="38144642-1e3e-4a72-b5ff-9705bdb76ec9"]
-	r=list(set(list(f["rName"])))
-	#print(len(r))
 	print(r)
 	f=f.loc[f["tName"]!="HMS-Beagle"]
-	fm=f.loc[f["gName"]=="chrM"]
+	#fm=f.loc[f["gName"]=="chrM"]
 	r=list(set(list(fm["rName"])))
 	print(len(r))
 	for read in r[20:]:
@@ -211,7 +207,6 @@ def GetInsertion(CombineFile):
 #getChimeric_reads(OutName+"_TE.paf")
 #JunctionReads(OutName+"_MultiAlig.tsv")
 #GetCirType(OutName+"_junction.tsv")
-GenomeMaapping(OutName+"_Type.tsv")
-#CombineMapping(OutName+"_"+Jun_type+".Gmap.tsv",OutName+"_"+Jun_type+".Tmap.tsv")
-#GetInsertion(OutName+"_"+Jun_type+"_cirIns_filter1.tsv")
+#GenomeMaapping(OutName+"_Type.tsv")
+GetInsertion(OutName+"_"+Jun_type+"_cirIns_filter1.tsv")
 
